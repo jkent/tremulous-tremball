@@ -1051,10 +1051,6 @@ typedef struct
   int           voiceChatBufferIn;
   int           voiceChatBufferOut;
 
-  // warmup countdown
-  int           warmup;
-  int           warmupCount;
-
   //==========================
 
   int           itemPickup;

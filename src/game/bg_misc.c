@@ -1885,14 +1885,14 @@ classAttributes_t bg_classList[ ] =
     "default",                                      //char    *skinname;
     1.0f,                                           //float   shadowScale;
     "alien_general_hud",                            //char    *hudname;
-    ( 1 << S3 ),                                    //int  stages
+    ( 1 << S1 )|( 1 << S2 )|( 1 << S3 ),            //int  stages
     { -32, -32, -21 },                              //vec3_t  mins;
     { 32, 32, 21 },                                 //vec3_t  maxs;
     { 32, 32, 21 },                                 //vec3_t  crouchmaxs;
     { -32, -32, -4 },                               //vec3_t  deadmins;
     { 32, 32, 4 },                                  //vec3_t  deadmaxs;
     0.0f,                                           //float   zOffset
-    27, 27,                                         //int     viewheight, crouchviewheight;
+    24, 24,                                         //int     viewheight, crouchviewheight;
     LEVEL3_UPG_HEALTH,                              //int     health;
     0.0f,                                           //float   fallDamage;
     LEVEL3_UPG_REGEN,                               //int     regenRate;
@@ -1910,7 +1910,7 @@ classAttributes_t bg_classList[ ] =
     6.0f,                                           //float   friction;
     200.0f,                                         //float   stopSpeed;
     270.0f,                                         //float   jumpMagnitude;
-    0.4f,                                           //float   knockbackScale;
+    0.5f,                                           //float   knockbackScale;
     { PCL_ALIEN_LEVEL4, PCL_NONE, PCL_NONE },       //int     children[ 3 ];
     LEVEL3_UPG_COST,                                //int     cost;
     LEVEL3_UPG_VALUE                                //int     value;

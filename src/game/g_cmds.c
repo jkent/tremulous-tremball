@@ -582,19 +582,7 @@ void Cmd_Kill_f( gentity_t *ent )
     ent->client->ps.stats[ STAT_HEALTH ] = ent->health = 0;
     player_die( ent, ent, ent, 100000, MOD_SUICIDE );
   }
-  else
-  {
-    if( ent->suicideTime == 0 )
-    {
-      trap_SendServerCommand( ent-g_entities, "print \"You will suicide in 20 seconds\n\"" );
-      ent->suicideTime = level.time + 20000;
-    }
-    else if( ent->suicideTime > level.time )
-    {
-      trap_SendServerCommand( ent-g_entities, "print \"Suicide canceled\n\"" );
-      ent->suicideTime = 0;
-    }
-  }
+  ent->suicideTime = level.time;
 }
 
 /*
@@ -771,16 +759,6 @@ void Cmd_Team_f( gentity_t *ent )
     aliens--;
   else if( oldteam == PTE_HUMANS )
     humans--;
-
-  // do warm up
-  if( g_doWarmup.integer && g_warmupMode.integer == 1 &&
-      level.time - level.startTime < g_warmup.integer * 1000 )
-  {
-    trap_SendServerCommand( ent - g_entities, va( "print \"team: you can't join"
-      " a team during warm up (%d seconds remaining)\n\"",
-      g_warmup.integer - ( level.time - level.startTime ) / 1000 ) );
-    return;
-  }
 
   trap_Argv( 1, s, sizeof( s ) );
 
@@ -1629,6 +1607,12 @@ void Cmd_CallVote_f( gentity_t *ent )
       G_AdminsPrintf("%s\n",message);
       return;
     }
+    if( ( g_entities[clientNum].r.svFlags & SVF_BOT ) )
+    {     
+      trap_SendServerCommand( ent-g_entities,
+        "print \"callvote: you can't kick bots\n\"" );
+      return;
+    }
 
     // use ip in case this player disconnects before the vote ends
     Com_sprintf( level.voteString, sizeof( level.voteString ),
@@ -2114,6 +2098,12 @@ void Cmd_CallTeamVote_f( gentity_t *ent )
       G_AdminsPrintf("%s\n",message);
       return;
     }
+    if( ( g_entities[clientNum].r.svFlags & SVF_BOT ) )
+    {     
+      trap_SendServerCommand( ent-g_entities,
+        "print \"callvote: you can't kick bots\n\"" );
+      return;
+    }
 
 
     // use ip in case this player disconnects before the vote ends
@@ -2493,43 +2483,11 @@ void Cmd_Class_f( gentity_t *ent )
 
     if( ent->client->pers.teamSelection == PTE_ALIENS )
     {
-      if( newClass != PCL_ALIEN_BUILDER0 &&
-          newClass != PCL_ALIEN_BUILDER0_UPG &&
-          newClass != PCL_ALIEN_LEVEL0 )
-      {
-        trap_SendServerCommand( ent-g_entities,
-          va( "print \"You cannot spawn with class %s\n\"", s ) );
-        return;
-      } 
-      
-      if( !BG_ClassIsAllowed( newClass ) )
-      {
-        trap_SendServerCommand( ent-g_entities,
-          va( "print \"Class %s is not allowed\n\"", s ) );
-        return;
-      }
-      
-      if( !BG_FindStagesForClass( newClass, g_alienStage.integer ) )
-      {
-        trap_SendServerCommand( ent-g_entities,
-          va( "print \"Class %s not allowed at stage %d\n\"",
-              s, g_alienStage.integer ) );
-        return;
-      }
-      
-      if( ent->client->pers.denyBuild && ( newClass==PCL_ALIEN_BUILDER0 || newClass==PCL_ALIEN_BUILDER0_UPG ) )
-      {
-        trap_SendServerCommand( ent-g_entities, "print \"Your building rights have been revoked\n\"" );
-        return;
-      }
-
-      // spawn from an egg
       if( G_PushSpawnQueue( &level.alienSpawnQueue, clientNum ) )
       {
-        // ROTAX
-        if (ent->client->pers.statscounters.tremball_team == 1) // RED
+        if( ent->client->pers.statscounters.tremball_team == 1 ) // RED
         {
-          if (ent->client->pers.statscounters.tremball_goalie == 1)
+          if( ent->client->pers.statscounters.tremball_goalie == 1 )
           {
             ent->client->pers.classSelection = PCL_ALIEN_LEVEL4;
             ent->client->ps.stats[ STAT_PCLASS ] = PCL_ALIEN_LEVEL4;
@@ -2540,9 +2498,9 @@ void Cmd_Class_f( gentity_t *ent )
             ent->client->ps.stats[ STAT_PCLASS ] = PCL_ALIEN_LEVEL3;
           }
         }
-        else if (ent->client->pers.statscounters.tremball_team == 2) // BLUE
+        if( ent->client->pers.statscounters.tremball_team == 2 ) // BLUE
         {
-          if (ent->client->pers.statscounters.tremball_goalie == 1)
+          if( ent->client->pers.statscounters.tremball_goalie == 1 )
           {
             ent->client->pers.classSelection = PCL_ALIEN_LEVEL4;
             ent->client->ps.stats[ STAT_PCLASS ] = PCL_ALIEN_LEVEL4;
@@ -2555,174 +2513,11 @@ void Cmd_Class_f( gentity_t *ent )
         }
       }
     }
-    else if( ent->client->pers.teamSelection == PTE_HUMANS )
-    {
-      //set the item to spawn with
-      if( !Q_stricmp( s, BG_FindNameForWeapon( WP_MACHINEGUN ) ) &&
-          BG_WeaponIsAllowed( WP_MACHINEGUN ) )
-      {
-        ent->client->pers.humanItemSelection = WP_MACHINEGUN;
-      }
-      else if( !Q_stricmp( s, BG_FindNameForWeapon( WP_HBUILD ) ) &&
-               BG_WeaponIsAllowed( WP_HBUILD ) )
-      {
-        ent->client->pers.humanItemSelection = WP_HBUILD;
-      }
-      else if( !Q_stricmp( s, BG_FindNameForWeapon( WP_HBUILD2 ) ) &&
-               BG_WeaponIsAllowed( WP_HBUILD2 ) &&
-               BG_FindStagesForWeapon( WP_HBUILD2, g_humanStage.integer ) )
-      {
-        ent->client->pers.humanItemSelection = WP_HBUILD2;
-      }
-      else
-      {
-        trap_SendServerCommand( ent-g_entities,
-          "print \"Unknown starting item\n\"" );
-        return;
-      }
-      // spawn from a telenode
-      G_LogOnlyPrintf("ClientTeamClass: %i human %s\n", clientNum, s);
-      if( G_PushSpawnQueue( &level.humanSpawnQueue, clientNum ) )
-      {
-        ent->client->pers.classSelection = PCL_HUMAN;
-        ent->client->ps.stats[ STAT_PCLASS ] = PCL_HUMAN;
-      }
-    }
     return;
   }
 
   if( ent->health <= 0 )
     return;
-
-  if( ent->client->pers.teamSelection == PTE_ALIENS &&
-      !( ent->client->ps.stats[ STAT_STATE ] & SS_INFESTING ) &&
-      !( ent->client->ps.stats[ STAT_STATE ] & SS_HOVELING ) )
-  {
-    if( newClass == PCL_NONE )
-    {
-      trap_SendServerCommand( ent-g_entities, "print \"Unknown class\n\"" );
-      return;
-    }
-
-    //if we are not currently spectating, we are attempting evolution
-    if( ent->client->pers.classSelection != PCL_NONE )
-    {
-      if( ( ent->client->ps.stats[ STAT_STATE ] & SS_WALLCLIMBING ) ||
-          ( ent->client->ps.stats[ STAT_STATE ] & SS_WALLCLIMBINGCEILING ) )
-      {
-        trap_SendServerCommand( ent-g_entities,
-          "print \"You cannot evolve while wallwalking\n\"" );
-        return;
-      }
-
-      //check there are no humans nearby
-      VectorAdd( ent->client->ps.origin, range, maxs );
-      VectorSubtract( ent->client->ps.origin, range, mins );
-
-      num = trap_EntitiesInBox( mins, maxs, entityList, MAX_GENTITIES );
-      for( i = 0; i < num; i++ )
-      {
-        other = &g_entities[ entityList[ i ] ];
-
-        if( ( other->client && other->client->ps.stats[ STAT_PTEAM ] == PTE_HUMANS ) ||
-            ( other->s.eType == ET_BUILDABLE && other->biteam == BIT_HUMANS ) )
-        {
-          G_TriggerMenu( clientNum, MN_A_TOOCLOSE );
-          return;
-        }
-      }
-
-      if( !level.overmindPresent )
-      {
-        G_TriggerMenu( clientNum, MN_A_NOOVMND_EVOLVE );
-        return;
-      }
-
-      //guard against selling the HBUILD weapons exploit
-       if( ent->client->sess.sessionTeam != TEAM_SPECTATOR &&
-           ( currentClass == PCL_ALIEN_BUILDER0 ||
-            currentClass == PCL_ALIEN_BUILDER0_UPG ) &&
-          ent->client->ps.stats[ STAT_MISC ] > 0 )
-      {
-        trap_SendServerCommand( ent-g_entities,
-            va( "print \"You cannot evolve until build timer expires\n\"" ) );
-        return;
-      }
-
-      numLevels = BG_ClassCanEvolveFromTo( currentClass,
-                                           newClass,
-                                           (short)ent->client->ps.persistant[ PERS_CREDIT ], 0 );
-
-      if( G_RoomForClassChange( ent, newClass, infestOrigin ) )
-      {
-        //...check we can evolve to that class
-        if( numLevels >= 0 &&
-            BG_FindStagesForClass( newClass, g_alienStage.integer ) &&
-            BG_ClassIsAllowed( newClass ) )
-        {
-          G_LogOnlyPrintf("ClientTeamClass: %i alien %s\n", clientNum, s);
-
-          ent->client->pers.evolveHealthFraction = (float)ent->client->ps.stats[ STAT_HEALTH ] /
-            (float)BG_FindHealthForClass( currentClass );
-
-          if( ent->client->pers.evolveHealthFraction < 0.0f )
-            ent->client->pers.evolveHealthFraction = 0.0f;
-          else if( ent->client->pers.evolveHealthFraction > 1.0f )
-            ent->client->pers.evolveHealthFraction = 1.0f;
-
-          //remove credit
-          G_AddCreditToClient( ent->client, -(short)numLevels, qtrue );
-          ent->client->pers.classSelection = newClass;
-          ClientUserinfoChanged( clientNum, qfalse );
-          VectorCopy( infestOrigin, ent->s.pos.trBase );
-          ClientSpawn( ent, ent, ent->s.pos.trBase, ent->s.apos.trBase );
-          return;
-        }
-        else
-        {
-          trap_SendServerCommand( ent-g_entities,
-               "print \"You cannot evolve from your current class\n\"" );
-          return;
-        }
-      }
-      else
-      {
-        G_TriggerMenu( clientNum, MN_A_NOEROOM );
-        return;
-      }
-    }
-   else if( ent->client->pers.teamSelection == PTE_HUMANS )
-   {
-    //humans cannot use this command whilst alive
-    if( ent->client->pers.classSelection != PCL_NONE )
-    {
-      trap_SendServerCommand( ent-g_entities, va( "print \"You must be dead to use the class command\n\"" ) );
-      return;
-    }
-
-    ent->client->pers.classSelection =
-      ent->client->ps.stats[ STAT_PCLASS ] = PCL_HUMAN;
-
-    //set the item to spawn with
-    if( !Q_stricmp( s, BG_FindNameForWeapon( WP_MACHINEGUN ) ) && BG_WeaponIsAllowed( WP_MACHINEGUN ) )
-      ent->client->pers.humanItemSelection = WP_MACHINEGUN;
-    else if( !Q_stricmp( s, BG_FindNameForWeapon( WP_HBUILD ) ) && BG_WeaponIsAllowed( WP_HBUILD ) )
-      ent->client->pers.humanItemSelection = WP_HBUILD;
-    else if( !Q_stricmp( s, BG_FindNameForWeapon( WP_HBUILD2 ) ) && BG_WeaponIsAllowed( WP_HBUILD2 ) &&
-        BG_FindStagesForWeapon( WP_HBUILD2, g_humanStage.integer ) )
-      ent->client->pers.humanItemSelection = WP_HBUILD2;
-    else
-    {
-      ent->client->pers.classSelection = PCL_NONE;
-      trap_SendServerCommand( ent-g_entities, va( "print \"Unknown starting item\n\"" ) );
-      return;
-    }
-
-    G_LogOnlyPrintf("ClientTeamClass: %i human %s\n", clientNum, s);
-
-    G_PushSpawnQueue( &level.humanSpawnQueue, clientNum );
-  }
- }
 }
 
 /*

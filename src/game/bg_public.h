@@ -48,7 +48,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #define CS_MUSIC            2
 #define CS_MESSAGE          3   // from the map worldspawn's message field
 #define CS_MOTD             4   // g_motd string for server message of the day
-#define CS_WARMUP           5   // server time when the match will be restarted
+// 5 UNUSED
 // 6 UNUSED
 // 7 UNUSED
 #define CS_VOTE_TIME        8

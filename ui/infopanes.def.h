@@ -8,21 +8,21 @@
 
 {
   name alienteam
-  text "The Alien Team\n\n"
-  text "The Aliens' strengths are in movement "
-  text "and the ability to quickly construct new bases quickly. They possess a "
-  text "range of abilities including basic melee attacks, movement-"
-  text "crippling poisons and more."
+  text "The Red Team\n\n"
+  text "The Red team is a team of "
+  text "honor with a passion for Tremball. "
+  text "The only thing standing in their way..."
+  text "The Blue Team..."
   align left
 }
 
 {
   name humanteam
-  text "The Human Team\n\n"
-  text "The humans are the masters of technology. Although their bases take "
-  text "long to construct, their automated defense ensures they stay built. "
-  text "A wide range of upgrades and weapons are available to the humans, each "
-  text "contributing to eradicate the alien threat."
+  text "The Blue Team\n\n"
+  text "A team of great pride in what they do... "
+  text "The blue team is the soul enemy of the Red Team "
+  text "and will stop at no lengths to beat them. "
+  text "To them, this sport is war."
   align left
 }
 

@@ -115,6 +115,12 @@ g_admin_cmd_t g_admin_cmds[ ] =
       "[^3mapname^7] (^5layout^7)"
     },
     
+    //ROTAX
+    {"goalie", G_admin_goalie, "goalie",
+      "make goalie",
+      "[^3name|slot#^7]"
+    },
+    
     {"help", G_admin_help, "help",
       "display commands available to you or help on a specific command",
       "(^5command^7)"
@@ -1955,6 +1961,11 @@ qboolean G_admin_kick( gentity_t *ent, int skiparg )
     return qfalse;
   }
   vic = &g_entities[ pids[ 0 ] ];
+  if( vic->r.svFlags & SVF_BOT )
+  {     
+    ADMP( "You cannot !kick bots.\n" );
+    return qfalse;
+  }
   admin_create_ban( ent,
     vic->client->pers.netname,
     vic->client->pers.guid,

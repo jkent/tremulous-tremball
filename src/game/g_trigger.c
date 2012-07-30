@@ -988,9 +988,10 @@ void trigger_gravity_touch( gentity_t *ent, gentity_t *other, trace_t *trace )
     Blow_up( other );
     tremball_score(2);
   }
-  return;//trigger gravity does not work anymore in maps for tremball
-
+// trigger gravity does not work anymore in maps for tremball
+/*
   other->client->ps.gravity = ent->triggerGravity;
+*/
 }
 
 /*
@@ -1053,8 +1054,8 @@ void trigger_heal_touch( gentity_t *self, gentity_t *other, trace_t *trace )
     Blow_up( other );
     tremball_score(1);
   }
-  return;//trigger heal does not work anymore in maps for tremball
-
+// trigger heal does not work anymore in maps for tremball
+/*
   if( !other->client )
     return;
 
@@ -1074,6 +1075,7 @@ void trigger_heal_touch( gentity_t *self, gentity_t *other, trace_t *trace )
     other->health = max;
 
   other->client->ps.stats[ STAT_HEALTH ] = other->health;
+*/
 }
 
 /*

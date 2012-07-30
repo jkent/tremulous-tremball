@@ -121,28 +121,6 @@ void CG_ParseServerinfo( void )
 }
 
 /*
-==================
-CG_ParseWarmup
-==================
-*/
-static void CG_ParseWarmup( void )
-{
-  const char  *info;
-  int         warmup;
-
-  info = CG_ConfigString( CS_WARMUP );
-
-  warmup = atoi( info );
-  cg.warmupCount = -1;
-
-  if( warmup == 0 && cg.warmup )
-  {
-  }
-
-  cg.warmup = warmup;
-}
-
-/*
 ================
 CG_SetConfigValues
 
@@ -163,7 +141,6 @@ void CG_SetConfigValues( void )
   sscanf( CG_ConfigString( CS_SPAWNS ), "%d %d", &cgs.numAlienSpawns, &cgs.numHumanSpawns );
 
   cgs.levelStartTime = atoi( CG_ConfigString( CS_LEVEL_START_TIME ) );
-  cg.warmup = atoi( CG_ConfigString( CS_WARMUP ) );
 }
 
 
@@ -270,8 +247,6 @@ static void CG_ConfigStringModified( void )
     CG_StartMusic( );
   else if( num == CS_SERVERINFO )
     CG_ParseServerinfo( );
-  else if( num == CS_WARMUP )
-    CG_ParseWarmup( );
   else if( num == CS_BUILDPOINTS )
     sscanf( str, "%d %d %d %d %d", &cgs.alienBuildPoints,
                                    &cgs.alienBuildPointsTotal,
@@ -420,12 +395,6 @@ static void CG_MapRestart( void )
   CG_StartMusic( );
 
   trap_S_ClearLoopingSounds( qtrue );
-
-  // we really should clear more parts of cg here and stop sounds
-
-  // play the "fight" sound if this is a restart without warmup
-  if( cg.warmup == 0 )
-    CG_CenterPrint( "FIGHT!", 120, GIANTCHAR_WIDTH * 2 );
 
   trap_Cvar_Set( "cg_thirdPerson", "0" );
 }
