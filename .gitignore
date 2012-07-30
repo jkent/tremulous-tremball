@@ -1,0 +1,12 @@
+*.d
+*.dll
+*.exe
+*.o
+*.so
+/build
+/src/tools/asm/q3asm
+/src/tools/q3asm
+/src/tools/q3cpp
+/src/tools/q3lcc
+/src/tools/q3rcc
+/src/tools/lcc/build-*
