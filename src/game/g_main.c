@@ -184,6 +184,11 @@ vmCvar_t  g_votableMaps;
 vmCvar_t  g_msg;
 vmCvar_t  g_msgTime;
 
+// ROTAX
+vmCvar_t  g_tremball_scoreToWin;
+int tremball_scoreRed = 0;
+int tremball_scoreBlue = 0;
+
 static cvarTable_t   gameCvarTable[ ] =
 {
   // don't override the cheat state set by the system
@@ -350,6 +355,7 @@ static cvarTable_t   gameCvarTable[ ] =
   { &g_rankings, "g_rankings", "0", 0, 0, qfalse },
   { &g_allowShare, "g_allowShare", "0", CVAR_ARCHIVE | CVAR_SERVERINFO, 0, qfalse},
   { &g_banNotice, "g_banNotice", "", CVAR_ARCHIVE, 0, qfalse  },
+  { &g_tremball_scoreToWin, "g_tremball_scoreToWin", "10", CVAR_SERVERINFO | CVAR_ARCHIVE, 0, qfalse  }, // ROTAX
 };
 
 static int gameCvarTableSize = sizeof( gameCvarTable ) / sizeof( gameCvarTable[ 0 ] );
@@ -744,6 +750,10 @@ void G_InitGame( int levelTime, int randomSeed, int restart )
   trap_Cvar_Set( "g_humanKills", 0 );
   trap_Cvar_Set( "g_suddenDeath", 0 );
   level.suddenDeathBeginTime = g_suddenDeathTime.integer * 60000;
+
+  // ROTAX
+  tremball_scoreRed = 0;
+  tremball_scoreBlue = 0;
 
   G_Printf( "-----------------------------------\n" );
 
@@ -2229,6 +2239,26 @@ void CheckExitRules( void )
     }
   }
 
+  // ROTAX
+  if (tremball_scoreBlue == g_tremball_scoreToWin.integer)
+  {
+    level.lastWin = PTE_HUMANS;
+    trap_SendServerCommand( -1, va("print \"^4### Blue team is WINNER! ### ^7(^1%i^7:^4%i^7)\n\"", tremball_scoreRed, tremball_scoreBlue));
+    trap_SetConfigstring( CS_WINNER, "Humans Win" );
+    LogExit( "Humans win." );
+    G_admin_maplog_result( "h" );
+    trap_SendServerCommand( -1, va("cp \"^4### Blue team is WINNER! ### ^7(^1%i^7:^4%i^7)\"", tremball_scoreRed, tremball_scoreBlue) );
+  }
+  else if (tremball_scoreRed == g_tremball_scoreToWin.integer)
+  {
+    level.lastWin = PTE_ALIENS;
+    trap_SendServerCommand( -1, va("print \"^1### Red team is WINNER! ### ^7(^1%i^7:^4%i^7)\n\"", tremball_scoreRed, tremball_scoreBlue));
+    trap_SetConfigstring( CS_WINNER, "Aliens Win" );
+    LogExit( "Aliens win." );
+    G_admin_maplog_result( "a" );
+    trap_SendServerCommand( -1, va("cp \"^1### Red team is WINNER! ### ^7(^1%i^7:^4%i^7)\"", tremball_scoreRed, tremball_scoreBlue) );
+  }
+/*
   if( level.uncondHumanWin ||
       ( ( level.time > level.startTime + 1000 ) &&
         ( level.numAlienSpawns == 0 ) &&
@@ -2253,6 +2283,7 @@ void CheckExitRules( void )
     LogExit( "Aliens win." );
     G_admin_maplog_result( "a" );
   }
+*/
 }
 
 

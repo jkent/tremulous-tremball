@@ -718,6 +718,9 @@ void G_ChangeTeam( gentity_t *ent, pTeam_t newTeam )
   ent->client->pers.statscounters.dretchbasytime = 0;
   ent->client->pers.statscounters.jetpackusewallwalkusetime = 0;
 
+  // ROTAX
+  ent->client->pers.statscounters.tremball_goalie = 0;
+
   if( G_admin_permission( ent, ADMF_DBUILDER ) )
   {
     if( !ent->client->pers.designatedBuilder )
@@ -796,7 +799,10 @@ void Cmd_Team_f( gentity_t *ent )
   }
   
   if( !Q_stricmpn( s, "spec", 4 ) )
+  {
     team = PTE_NONE;
+    ent->client->pers.statscounters.tremball_team = 0; // ROTAX
+  }
   else if( !force && ent->client->pers.teamSelection == PTE_NONE &&
            g_maxGameClients.integer && level.numPlayingClients >=
            g_maxGameClients.integer )
@@ -835,6 +841,7 @@ void Cmd_Team_f( gentity_t *ent )
     
 
     team = PTE_ALIENS;
+    ent->client->pers.statscounters.tremball_team = 1; // ROTAX
   }
   else if( !Q_stricmpn( s, "human", 5 ) )
   {
@@ -863,23 +870,42 @@ void Cmd_Team_f( gentity_t *ent )
       return;
     }
 
-    team = PTE_HUMANS;
+    team = PTE_ALIENS;// ROTAX
+    ent->client->pers.statscounters.tremball_team = 2; // ROTAX
   }
   else if( !Q_stricmp( s, "auto" ) )
   {
     if( level.humanTeamLocked && level.alienTeamLocked )
+    {
       team = PTE_NONE;
+      ent->client->pers.statscounters.tremball_team = 0; // ROTAX
+    }
     else if( humans > aliens )
+    {
       team = PTE_ALIENS;
+      ent->client->pers.statscounters.tremball_team = 1; // ROTAX
+    }
     else if( humans < aliens )
-      team = PTE_HUMANS;
+    {
+      team = PTE_ALIENS;// ROTAX
+      ent->client->pers.statscounters.tremball_team = 2; // ROTAX
+    }
     else
+    {
       team = PTE_ALIENS + ( rand( ) % 2 );
+      ent->client->pers.statscounters.tremball_team = team + 1; // ROTAX
+    }
 
     if( team == PTE_ALIENS && level.alienTeamLocked )
-      team = PTE_HUMANS;
+    {
+      team = PTE_ALIENS;// ROTAX
+      ent->client->pers.statscounters.tremball_team = 2; // ROTAX
+    }
     else if( team == PTE_HUMANS && level.humanTeamLocked )
+    {
       team = PTE_ALIENS;
+      ent->client->pers.statscounters.tremball_team = 1; // ROTAX
+    }
   }
   else
   {
@@ -940,6 +966,8 @@ void Cmd_Team_f( gentity_t *ent )
        Com_sprintf( buf, sizeof( buf ), "%s^7 left the humans.", ent->client->pers.netname );
      else
        Com_sprintf( buf, sizeof( buf ), "%s^7 left the aliens.", ent->client->pers.netname );
+
+      ent->client->pers.statscounters.tremball_team = 0; // ROTAX
    }
    trap_SendServerCommand( -1, va( "print \"%s\n\"", buf ) );
    G_LogOnlyPrintf("ClientTeam: %s\n",buf);
@@ -1991,11 +2019,12 @@ void Cmd_CallTeamVote_f( gentity_t *ent )
     }
   }
   
-  // detect clientNum for partial name match votes
+  // detect clientNum for partial name match votes // ROTAX
   if( !Q_stricmp( arg1, "kick" ) ||
     !Q_stricmp( arg1, "denybuild" ) ||
     !Q_stricmp( arg1, "allowbuild" ) || 
     !Q_stricmp( arg1, "designate" ) || 
+    !Q_stricmp( arg1, "goalie" ) || 
     !Q_stricmp( arg1, "undesignate" ) )
   {
     int clientNums[ MAX_CLIENTS ] = { -1 };
@@ -2176,6 +2205,28 @@ void Cmd_CallTeamVote_f( gentity_t *ent )
     Com_sprintf( level.teamVoteDisplayString[ cs_offset ],
         sizeof( level.teamVoteDisplayString[ cs_offset ] ),
         "Remove designated builder status from '%s'", name );
+  }
+  else if( !Q_stricmp( arg1, "goalie" ) ) // ROTAX
+  {
+    if( level.clients[ clientNum ].pers.statscounters.tremball_goalie == 1 )
+    {
+      trap_SendServerCommand( ent-g_entities,
+        va("print \"callteamvote: Player %s is goalie already.\n\"", name) );
+      return;
+    }
+
+    if( level.clients[ clientNum ].pers.teamSelection == PTE_NONE || level.clients[ clientNum ].ps.stats[ STAT_PCLASS ] == PCL_ALIEN_LEVEL0)
+    {
+      trap_SendServerCommand( ent-g_entities,
+        "print \"callteamvote: Goalie can be only player from red or blue team.\n\"" );
+      return;
+    }
+
+    Com_sprintf( level.teamVoteString[ cs_offset ],
+      sizeof( level.teamVoteString[ cs_offset ] ), "!goalie %i", clientNum );
+    Com_sprintf( level.teamVoteDisplayString[ cs_offset ],
+        sizeof( level.teamVoteDisplayString[ cs_offset ] ),
+        "'%s' want be goalie", name );
   }
   else if( !Q_stricmp( arg1, "admitdefeat" ) )
   {
@@ -2475,8 +2526,33 @@ void Cmd_Class_f( gentity_t *ent )
       // spawn from an egg
       if( G_PushSpawnQueue( &level.alienSpawnQueue, clientNum ) )
       {
-        ent->client->pers.classSelection = newClass;
-        ent->client->ps.stats[ STAT_PCLASS ] = newClass;
+        // ROTAX
+        if (ent->client->pers.statscounters.tremball_team == 1) // RED
+        {
+          if (ent->client->pers.statscounters.tremball_goalie == 1)
+          {
+            ent->client->pers.classSelection = PCL_ALIEN_LEVEL4;
+            ent->client->ps.stats[ STAT_PCLASS ] = PCL_ALIEN_LEVEL4;
+          }
+          else
+          {
+            ent->client->pers.classSelection = PCL_ALIEN_LEVEL3;
+            ent->client->ps.stats[ STAT_PCLASS ] = PCL_ALIEN_LEVEL3;
+          }
+        }
+        else if (ent->client->pers.statscounters.tremball_team == 2) // BLUE
+        {
+          if (ent->client->pers.statscounters.tremball_goalie == 1)
+          {
+            ent->client->pers.classSelection = PCL_ALIEN_LEVEL4;
+            ent->client->ps.stats[ STAT_PCLASS ] = PCL_ALIEN_LEVEL4;
+          }
+          else
+          {
+            ent->client->pers.classSelection = PCL_ALIEN_LEVEL3_UPG;
+            ent->client->ps.stats[ STAT_PCLASS ] = PCL_ALIEN_LEVEL3_UPG;
+          }
+        }
       }
     }
     else if( ent->client->pers.teamSelection == PTE_HUMANS )

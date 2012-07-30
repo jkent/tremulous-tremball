@@ -23,6 +23,24 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "g_local.h"
 
+// ROTAX
+extern int tremball_scoreRed;
+extern int tremball_scoreBlue;
+void tremball_score(team)
+{
+  if (team == 1)
+  {
+    tremball_scoreRed++;
+    trap_SendServerCommand( -1, va("cp \"^1Red SCORE!!!\n=G=O=A=L=\n^1Red: %i ^7VS ^4Blue: %i\"", tremball_scoreRed, tremball_scoreBlue) );
+    trap_SendServerCommand( -1, va("print \"^1Red SCORE!!! =G=O=A=L= ^1Red: %i ^7VS ^4Blue: %i\n\"", tremball_scoreRed, tremball_scoreBlue) );
+  }
+  else
+  {
+    tremball_scoreBlue++;
+    trap_SendServerCommand( -1, va("cp \"^4Blue SCORE!!!\n=G=O=A=L=\n^1Red: %i ^7VS ^4Blue: %i\"", tremball_scoreRed, tremball_scoreBlue) );
+    trap_SendServerCommand( -1, va("print \"^4Blue SCORE!!! =G=O=A=L= ^1Red: %i ^7VS ^4Blue: %i\n\"", tremball_scoreRed, tremball_scoreBlue) );
+  }   
+}
 
 void InitTrigger( gentity_t *self )
 {
@@ -963,6 +981,15 @@ void trigger_gravity_touch( gentity_t *ent, gentity_t *other, trace_t *trace )
   if( !other->client )
     return;
 
+  // ROTAX
+  if (other->client->ps.stats[ STAT_PCLASS ] == PCL_ALIEN_LEVEL0) // ball
+  {
+    G_Damage( other, NULL, NULL, NULL, NULL, 10000, 0, MOD_UNKNOWN ); 
+    Blow_up( other );
+    tremball_score(2);
+  }
+  return;//trigger gravity does not work anymore in maps for tremball
+
   other->client->ps.gravity = ent->triggerGravity;
 }
 
@@ -1018,6 +1045,15 @@ trigger_heal_touch
 void trigger_heal_touch( gentity_t *self, gentity_t *other, trace_t *trace )
 {
   int max;
+
+  // ROTAX
+  if (other->client->ps.stats[ STAT_PCLASS ] == PCL_ALIEN_LEVEL0) // ball
+  {
+    G_Damage( other, NULL, NULL, NULL, NULL, 10000, 0, MOD_UNKNOWN );
+    Blow_up( other );
+    tremball_score(1);
+  }
+  return;//trigger heal does not work anymore in maps for tremball
 
   if( !other->client )
     return;

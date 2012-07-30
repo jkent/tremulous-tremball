@@ -90,17 +90,17 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #define LEVEL3_CLAW_WIDTH           16.0f
 #define LEVEL3_CLAW_REPEAT          700
 #define LEVEL3_CLAW_K_SCALE         1.0f
-#define LEVEL3_CLAW_U_REPEAT        600
+#define LEVEL3_CLAW_U_REPEAT        700 // ROTAX 600
 #define LEVEL3_CLAW_U_K_SCALE       1.0f
 #define LEVEL3_POUNCE_DMG           ADM(100)
 #define LEVEL3_POUNCE_RANGE         72.0f
 #define LEVEL3_POUNCE_WIDTH         16.0f
 #define LEVEL3_POUNCE_SPEED         700
-#define LEVEL3_POUNCE_UPG_SPEED     800
+#define LEVEL3_POUNCE_UPG_SPEED     700 // ROTAX 800
 #define LEVEL3_POUNCE_SPEED_MOD     0.75f
 #define LEVEL3_POUNCE_CHARGE_TIME   700
 #define LEVEL3_POUNCE_TIME          400
-#define LEVEL3_BOUNCEBALL_DMG       ADM(110)
+#define LEVEL3_BOUNCEBALL_DMG       ADM(0) // ROTAX 110
 #define LEVEL3_BOUNCEBALL_REPEAT    1000
 #define LEVEL3_BOUNCEBALL_SPEED     1000.0f
 
@@ -181,14 +181,14 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #define LEVEL3_SPEED                1.1f
 #define LEVEL3_VALUE                AVM(500)
-#define LEVEL3_HEALTH               AHM(200)
+#define LEVEL3_HEALTH               AHM(600) // ROTAX 200
 #define LEVEL3_REGEN                6
 #define LEVEL3_COST                 1
 
 #define LEVEL3_UPG_SPEED            1.1f
-#define LEVEL3_UPG_VALUE            AVM(600)
-#define LEVEL3_UPG_HEALTH           AHM(250)
-#define LEVEL3_UPG_REGEN            7
+#define LEVEL3_UPG_VALUE            AVM(500) // ROTAX 600
+#define LEVEL3_UPG_HEALTH           AHM(600) // ROTAX 250
+#define LEVEL3_UPG_REGEN            6 // ROTAX 7
 #define LEVEL3_UPG_COST             1
 
 #define LEVEL4_SPEED                1.2f
@@ -366,8 +366,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #define GRENADE_PRICE               200
 #define GRENADE_REPEAT              0
 #define GRENADE_K_SCALE             1.0f
-#define GRENADE_DAMAGE              HDM(310)
-#define GRENADE_RANGE               192.0f
+#define GRENADE_DAMAGE              HDM(650) // ROTAX 310
+#define GRENADE_RANGE               350.0f // ROTAX 192
 #define GRENADE_SPEED               400.0f
 
 #define SHOTGUN_PRICE               150

@@ -365,6 +365,8 @@ typedef struct
   int dretchbasytime;
   int jetpackusewallwalkusetime;
   int timeLastViewed;
+  int tremball_team; // ROTAX
+  int tremball_goalie; // ROTAX
 } statsCounters_t;
 
 typedef struct
@@ -389,6 +391,7 @@ typedef struct
   long dretchbasytime;
   long jetpackusewallwalkusetime;
   long timeLastViewed;
+  int tremball_team; // ROTAX
 } statsCounters_level;
 
 // client data that stays across multiple respawns, but is cleared
@@ -1005,6 +1008,7 @@ gentity_t *fire_bounceBall( gentity_t *self, vec3_t start, vec3_t dir );
 gentity_t *fire_hive( gentity_t *self, vec3_t start, vec3_t dir );
 gentity_t *launch_grenade( gentity_t *self, vec3_t start, vec3_t dir );
 
+gentity_t *launch_grenade2( gentity_t *self, vec3_t start, vec3_t dir ); // ROTAX
 
 //
 // g_mover.c
@@ -1056,6 +1060,7 @@ qboolean  CheckPounceAttack( gentity_t *ent );
 void      ChargeAttack( gentity_t *ent, gentity_t *victim );
 void      G_UpdateZaps( int msec );
 
+void Blow_up( gentity_t *ent ); // ROTAX
 
 //
 // g_client.c

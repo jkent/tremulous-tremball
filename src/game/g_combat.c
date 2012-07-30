@@ -155,6 +155,8 @@ void player_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int
     if( attacker->client )
     {
       killerName = attacker->client->pers.netname;
+// ROTAX
+/*
       tk = ( attacker != self && attacker->client->ps.stats[ STAT_PTEAM ] 
         == self->client->ps.stats[ STAT_PTEAM ] );
 
@@ -170,6 +172,8 @@ void player_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int
           level.humanStatsCounters.teamkills++;
         }
       }
+*/
+      tk = ( attacker != self && attacker->client->pers.statscounters.tremball_team == self->client->pers.statscounters.tremball_team );
 
     }
     else
@@ -247,7 +251,7 @@ void player_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int
      trap_SendServerCommand( self-g_entities, va( "print \"Your killer, %s, had %3i HP.\n\"", killerName, attacker->health ) );
    }
 
-    if( attacker == self || OnSameTeam( self, attacker ) )
+    if( attacker == self || attacker->client->pers.statscounters.tremball_team == self->client->pers.statscounters.tremball_team ) // ROTAX
     {
       AddScore( attacker, -1 );
 

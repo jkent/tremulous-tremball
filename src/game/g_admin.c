@@ -32,6 +32,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "g_local.h"
 
+// ROTAX
+qboolean G_admin_goalie( gentity_t *ent, int skiparg );
+
 // big ugly global buffer for use with buffered printing of long outputs
 static char g_bfb[ 32000 ];
 
@@ -4418,6 +4421,73 @@ qboolean G_admin_designate( gentity_t *ent, int skiparg )
       vic->client->pers.netname,
       ( ent ) ? G_admin_adminPrintName( ent ) : "console" ) );
   }
+  return qtrue;
+}
+
+// ROTAX
+qboolean G_admin_goalie( gentity_t *ent, int skiparg )
+{
+  int pids[ MAX_CLIENTS ];
+  char name[ MAX_NAME_LENGTH ], err[ MAX_STRING_CHARS ];
+  char command[ MAX_ADMIN_CMD_LEN ], *cmd;
+  gentity_t *vic;
+
+  if( G_SayArgc() < 2 + skiparg )
+  {
+    ADMP( "^3!goalie: ^7usage: goalie [name|slot#]\n" );
+    return qfalse;
+  }
+
+  G_SayArgv( skiparg, command, sizeof( command ) );
+  cmd = command;
+  if( cmd && *cmd == '!' )
+    cmd++;
+  G_SayArgv( 1 + skiparg, name, sizeof( name ) );
+  if( G_ClientNumbersFromString( name, pids ) != 1 )
+  {
+    G_MatchOnePlayer( pids, err, sizeof( err ) );
+    ADMP( va( "^3!goalie: ^7%s\n", err ) );
+    return qfalse;
+  }
+  if( !admin_higher( ent, &g_entities[ pids[ 0 ] ] ) &&
+    !Q_stricmp( cmd, "goalie" ) )
+  {
+    ADMP( "^3!goalie: ^7sorry, but your intended victim has a higher admin"
+        " level than you\n" );
+    return qfalse;
+  }
+  vic = &g_entities[ pids[ 0 ] ];
+  if( vic->client->pers.statscounters.tremball_goalie == 1 )
+  {
+    ADMP( "^3!goalie: ^7player is goalie already\n" );
+    return qfalse;
+  }
+  else if (vic->client->pers.teamSelection == PTE_NONE || vic->client->ps.stats[ STAT_PCLASS ] == PCL_ALIEN_LEVEL0)
+  {
+    ADMP( "^3!goalie: ^7Goalie can be only player from red or blue team.\n" );
+    return qfalse;
+  }
+  else
+  {
+    int i;
+    gentity_t *gent;
+
+    for( i = 0; i < level.numConnectedClients; i++ )
+    {
+      gent = &g_entities[ i ];
+      if (vic->client->pers.statscounters.tremball_team == gent->client->pers.statscounters.tremball_team )
+      {
+        gent->client->pers.statscounters.tremball_goalie = 0;
+      }
+    }
+
+    vic->client->pers.statscounters.tremball_goalie = 1;
+    CPx( pids[ 0 ], "cp \"^1You are next goalie now\"" );
+    AP( va( "print \"^3!goalie: ^7%s^7 has been goalied by ^7%s\n\"",
+      vic->client->pers.netname,
+      ( ent ) ? G_admin_adminPrintName( ent ) : "console" ) );
+  }
+  ClientUserinfoChanged( pids[ 0 ], qfalse );
   return qtrue;
 }
 
