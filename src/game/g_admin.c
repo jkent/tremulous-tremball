@@ -55,10 +55,10 @@ g_admin_cmd_t g_admin_cmds[ ] =
       ""
     },
 
-    {"allowbuild", G_admin_denybuild, "denybuild",
+/*    {"allowbuild", G_admin_denybuild, "denybuild",
       "restore a player's ability to build",
       "[^3name|slot#^7]"
-    },
+    },*/
     
     {"allready", G_admin_allready, "allready",
       "makes everyone ready in intermission",
@@ -73,12 +73,12 @@ g_admin_cmd_t g_admin_cmds[ ] =
       "[^3name|slot#|IP^7] (^5time^7) (^5reason^7)"
     },
 
-    {"buildlog", G_admin_buildlog, "buildlog",
+/*    {"buildlog", G_admin_buildlog, "buildlog",
       "display a list of recent builds and deconstructs, optionally specifying"
       " a team",
       "(^5xnum^7) (^5#skip^7) (^5-name|num^7) (^5a|h^7)"
       "\n ^3Example:^7 '!buildlog #10 h' skips 10 events, then shows the previous 10 events affecting human buildables"
-    },
+    },*/
 
     {"bot", G_admin_bot, "bot",
       "Add or delete bot(s)",
@@ -100,15 +100,15 @@ g_admin_cmd_t g_admin_cmds[ ] =
       "(-AHS) [^3message^7]"
     },
 
-    {"denybuild", G_admin_denybuild, "denybuild",
+/*    {"denybuild", G_admin_denybuild, "denybuild",
       "take away a player's ability to build",
       "[^3name|slot#^7]"
-    },
+    },*/
 
-    {"designate", G_admin_designate, "designate",
+/*    {"designate", G_admin_designate, "designate",
       "give the player designated builder privileges",
       "[^3name|slot#^7]"
-    },
+    },*/
     
     {"devmap", G_admin_devmap, "devmap",
       "load a map with cheats (and optionally force layout)",
@@ -146,10 +146,10 @@ g_admin_cmd_t g_admin_cmds[ ] =
       "[^3name|slot#^7]"
     },
     
-    {"layoutsave", G_admin_layoutsave, "layoutsave",
+/*    {"layoutsave", G_admin_layoutsave, "layoutsave",
       "save a map layout",
       "[^3mapname^7]"
-    },
+    },*/
     
     {"listadmins", G_admin_listadmins, "listadmins",
       "display a list of all server admins and their levels",
@@ -211,11 +211,12 @@ g_admin_cmd_t g_admin_cmds[ ] =
       ""
     },
 
+/*  TODO: this needs to be fixed; currently not working proper
 
     {"putteam", G_admin_putteam, "putteam",
       "move a player to a specified team",
       "[^3name|slot#^7] [^3h|a|s^7]"
-    },
+    },*/
 
     {"readconfig", G_admin_readconfig, "readconfig",
       "reloads the admin config file and refreshes permission flags",
@@ -237,11 +238,11 @@ g_admin_cmd_t g_admin_cmds[ ] =
       "(^5layout^7) (^5keepteams|switchteams|keepteamslock|switchteamslock^7)"
     },
 
-    {"revert", G_admin_revert, "revert",
+/*    {"revert", G_admin_revert, "revert",
       "revert one or more buildlog events, optionally of only one team",
       "(^5xnum^7) (^5#ID^7) (^5-name|num^7) (^5a|h^7)"
       "\n ^3Example:^7 '!revert x5 h' reverts the last 5 events affecting human buildables"
-    },
+    },*/
 
     {"rotation", G_admin_listrotation, "rotation",
        "display a list of maps that are in the active map rotation",
@@ -251,6 +252,11 @@ g_admin_cmd_t g_admin_cmds[ ] =
     {"setlevel", G_admin_setlevel, "setlevel",
       "sets the admin level of a player",
       "[^3name|slot#|admin#^7] [^3level^7]"
+    },
+
+    {"scores", G_admin_scores, "scores",
+      "shows the scores for the teams",
+      ""
     },
 
     {"showbans", G_admin_showbans, "showbans",
@@ -287,10 +293,10 @@ g_admin_cmd_t g_admin_cmds[ ] =
       "[^3ban#^7]"
     },
     
-    {"undesignate", G_admin_designate, "designate",
+/*    {"undesignate", G_admin_designate, "designate",
       "revoke designated builder privileges",
       "[^3name|slot#^7]"
-    },
+    },*/
     
     {"unlock", G_admin_unlock, "lock",
       "unlock a locked team",
@@ -5314,6 +5320,17 @@ qboolean G_admin_L1(gentity_t *ent, int skiparg ){
   }
  
   trap_SendConsoleCommand( EXEC_APPEND,va( "!setlevel %d 1;", pids[ 0 ] ) );
+  return qtrue;
+}
+
+extern int tremball_scoreRed;
+extern int tremball_scoreBlue;
+extern vmCvar_t g_tremball_scoreToWin;
+
+qboolean G_admin_scores( gentity_t *ent, int skiparg )
+{
+  ADMP( va( "^1Red^7 %i, ^4Blue^7 %i, Score limit %i\n", tremball_scoreRed, tremball_scoreBlue, g_tremball_scoreToWin.integer) );
+
   return qtrue;
 }
 
