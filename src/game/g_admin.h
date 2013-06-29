@@ -58,7 +58,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  * INCOGNITO - does not show up as an admin in !listplayers
  * ADMINCHAT - receives and can send /a admin messages
  * SEESFULLLISTPLAYERS - sees all information in !listplayers 
- * DBUILDER - permanent designated builder
  * STEALTH - uses admin stealth
  * ALLFLAGS - all flags (including command flags) apply to this player
  */
@@ -79,7 +78,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #define ADMF_INCOGNITO           "INCOGNITO"
 #define ADMF_ADMINCHAT           "ADMINCHAT"
 #define ADMF_SEESFULLLISTPLAYERS "SEESFULLLISTPLAYERS"
-#define ADMF_DBUILDER            "DBUILDER"
 #define ADMF_ADMINSTEALTH        "STEALTH"
 #define ADMF_ALLFLAGS            "ALLFLAGS"
 
@@ -180,9 +178,7 @@ qboolean G_admin_map( gentity_t *ent, int skiparg );
 qboolean G_admin_devmap( gentity_t *ent, int skiparg );
 void G_admin_maplog_update( void );
 qboolean G_admin_maplog( gentity_t *ent, int skiparg );
-qboolean G_admin_layoutsave( gentity_t *ent, int skiparg );
 qboolean G_admin_mute( gentity_t *ent, int skiparg );
-qboolean G_admin_denybuild( gentity_t *ent, int skiparg );
 qboolean G_admin_showbans( gentity_t *ent, int skiparg );
 qboolean G_admin_help( gentity_t *ent, int skiparg );
 qboolean G_admin_admintest( gentity_t *ent, int skiparg );
@@ -198,16 +194,12 @@ qboolean G_admin_namelog( gentity_t *ent, int skiparg );
 qboolean G_admin_lock( gentity_t *ent, int skiparg );
 qboolean G_admin_unlock( gentity_t *ent, int skiparg );
 qboolean G_admin_info( gentity_t *ent, int skiparg );
-qboolean G_admin_buildlog( gentity_t *ent, int skiparg );
-qboolean G_admin_revert( gentity_t *ent, int skiparg );
 qboolean G_admin_pause( gentity_t *ent, int skiparg );
 qboolean G_admin_L0( gentity_t *ent, int skiparg );
 qboolean G_admin_L1( gentity_t *ent, int skiparg );
 qboolean G_admin_putmespec( gentity_t *ent, int skiparg );
 qboolean G_admin_warn( gentity_t *ent, int skiparg );
-qboolean G_admin_designate( gentity_t *ent, int skiparg );
 qboolean G_admin_cp( gentity_t *ent, int skiparg );
-qboolean G_admin_scores( gentity_t *ent, int skiparg );
 
 void G_admin_print( gentity_t *ent, char *m );
 void G_admin_buffer_print( gentity_t *ent, char *m );
