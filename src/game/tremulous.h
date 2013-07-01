@@ -619,7 +619,3 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #define DAMAGE_FRACTION_FOR_KILL    0.5f //how much damage players (versus structures) need to
                                          //do to increment the stage kill counters
 
-// g_suddenDeathMode settings
-#define SDMODE_BP                   0 
-#define SDMODE_NO_BUILD             1
-#define SDMODE_SELECTIVE            2

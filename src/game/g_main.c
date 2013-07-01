@@ -44,9 +44,6 @@ gclient_t   g_clients[ MAX_CLIENTS ];
 
 vmCvar_t  g_fraglimit;
 vmCvar_t  g_timelimit;
-vmCvar_t  g_suddenDeathTime;
-vmCvar_t  g_suddenDeath;
-vmCvar_t  g_suddenDeathMode;
 vmCvar_t  g_capturelimit;
 vmCvar_t  g_friendlyFire;
 vmCvar_t  g_friendlyFireAliens;
@@ -85,8 +82,6 @@ vmCvar_t  g_podiumDrop;
 vmCvar_t  g_allowVote;
 vmCvar_t  g_requireVoteReasons;
 vmCvar_t  g_voteLimit;
-vmCvar_t  g_suddenDeathVotePercent;
-vmCvar_t  g_suddenDeathVoteDelay;
 vmCvar_t  g_mapVotesPercent;
 vmCvar_t  g_designateVotes;
 vmCvar_t  g_teamAutoJoin;
@@ -211,9 +206,6 @@ static cvarTable_t   gameCvarTable[ ] =
 
   // change anytime vars
   { &g_timelimit, "timelimit", "45", CVAR_SERVERINFO | CVAR_ARCHIVE | CVAR_NORESTART, 0, qtrue },
-  { &g_suddenDeathTime, "g_suddenDeathTime", "30", CVAR_SERVERINFO | CVAR_ARCHIVE | CVAR_NORESTART, 0, qtrue },
-  { &g_suddenDeathMode, "g_suddenDeathMode", "0", CVAR_SERVERINFO | CVAR_ARCHIVE | CVAR_NORESTART, 0, qtrue },
-  { &g_suddenDeath, "g_suddenDeath", "0", CVAR_SERVERINFO | CVAR_NORESTART, 0, qtrue },
 
   { &g_synchronousClients, "g_synchronousClients", "0", CVAR_SYSTEMINFO, 0, qfalse  },
 
@@ -266,8 +258,6 @@ static cvarTable_t   gameCvarTable[ ] =
   { &g_voteMinTime, "g_voteMinTime", "120", CVAR_ARCHIVE, 0, qfalse },
   { &g_mapvoteMaxTime, "g_mapvoteMaxTime", "240", CVAR_ARCHIVE, 0, qfalse },
   { &g_votableMaps, "g_votableMaps", "", CVAR_ARCHIVE, 0, qtrue },
-  { &g_suddenDeathVotePercent, "g_suddenDeathVotePercent", "74", CVAR_ARCHIVE, 0, qfalse },
-  { &g_suddenDeathVoteDelay, "g_suddenDeathVoteDelay", "180", CVAR_ARCHIVE, 0, qfalse },
   { &g_mapVotesPercent, "g_mapVotesPercent", "50", CVAR_ARCHIVE, 0, qfalse },
   { &g_designateVotes, "g_designateVotes", "0", CVAR_ARCHIVE, 0, qfalse },
   
@@ -748,8 +738,6 @@ void G_InitGame( int levelTime, int randomSeed, int restart )
   trap_Cvar_Set( "g_humanStage", va( "%d", S1 ) );
   trap_Cvar_Set( "g_alienKills", 0 );
   trap_Cvar_Set( "g_humanKills", 0 );
-  trap_Cvar_Set( "g_suddenDeath", 0 );
-  level.suddenDeathBeginTime = g_suddenDeathTime.integer * 60000;
 
   // ROTAX
   tremball_scoreRed = 0;
@@ -1179,20 +1167,6 @@ void G_CountSpawns( void )
         level.numAlienSpawns, level.numHumanSpawns ) );
 }
 
-/*
-============
-G_TimeTilSuddenDeath
-============
-*/
-int G_TimeTilSuddenDeath( void )
-{
-  if( (!g_suddenDeathTime.integer && level.suddenDeathBeginTime==0 ) || level.suddenDeathBeginTime<0 )
-    return 999999999; // Always some time away
-
-  return ( ( level.suddenDeathBeginTime ) - ( level.time - level.startTime ) );
-}
-
-
 #define PLAYER_COUNT_MOD 5.0f
 
 /*
@@ -1209,85 +1183,9 @@ void G_CalculateBuildPoints( void )
   gentity_t   *ent;
   int         localHTP = g_humanBuildPoints.integer,
               localATP = g_alienBuildPoints.integer;
-
-  // g_suddenDeath sets what state we want it to be.  
-  // level.suddenDeath says whether we've calculated BPs at the 'start' of SD or not
-
-  // reset if SD was on, but now it's off
-  if(!g_suddenDeath.integer && level.suddenDeath) 
-  {
-    level.suddenDeath=qfalse;
-    level.suddenDeathWarning=0;
-    level.suddenDeathBeginTime = -1;
-    if((level.time - level.startTime) < (g_suddenDeathTime.integer * 60000 ) )
-      level.suddenDeathBeginTime = g_suddenDeathTime.integer * 60000;
-    else
-      level.suddenDeathBeginTime = -1;
-  }
-
-  if(!level.suddenDeath)
-  {
-    if(g_suddenDeath.integer || G_TimeTilSuddenDeath( ) <= 0 ) //Conditions to enter SD
-    {
-      //begin sudden death
-      if( level.suddenDeathWarning < TW_PASSED )
-      {
-        trap_SendServerCommand( -1, "cp \"Sudden Death!\"" );
-        G_LogPrintf("Beginning Sudden Death (Mode %d)\n",g_suddenDeathMode.integer);
-        localHTP = 0;
-        localATP = 0;
-
-        if( g_suddenDeathMode.integer == SDMODE_SELECTIVE )
-        {
-          for( i = 1, ent = g_entities + i; i < level.num_entities; i++, ent++ )
-          {
-            if( ent->s.eType != ET_BUILDABLE )
-              continue;
-        
-            if( BG_FindReplaceableTestForBuildable( ent->s.modelindex ) )
-            {
-              int t = BG_FindTeamForBuildable( ent->s.modelindex );
-        
-              if( t == BIT_HUMANS )
-                localHTP += BG_FindBuildPointsForBuildable( ent->s.modelindex );
-              else if( t == BIT_ALIENS )
-                localATP += BG_FindBuildPointsForBuildable( ent->s.modelindex );
-            }
-          }
-        }
-        level.suddenDeathHBuildPoints = localHTP;
-        level.suddenDeathABuildPoints = localATP;
-        level.suddenDeathBeginTime = level.time;
-        level.suddenDeath=qtrue;
-        trap_Cvar_Set( "g_suddenDeath", "1" );
-
-        level.suddenDeathWarning = TW_PASSED;
-      }
-    }  
-    else 
-    {
-       //warn about sudden death
-       if( ( G_TimeTilSuddenDeath( ) <= 60000 ) &&
-           (  level.suddenDeathWarning < TW_IMMINENT ) )
-       {
-         trap_SendServerCommand( -1, va("cp \"Sudden Death in %d seconds!\"", 
-               (int)(G_TimeTilSuddenDeath() / 1000 ) ) );
-         level.suddenDeathWarning = TW_IMMINENT;
-       }
-    }
-  }
   
-  //set BP at each cycle
-  if( g_suddenDeath.integer )
-  {
-    localHTP = level.suddenDeathHBuildPoints;
-    localATP = level.suddenDeathABuildPoints;
-  }
-  else
-  {
-    localHTP = g_humanBuildPoints.integer;
-    localATP = g_alienBuildPoints.integer;
-  }
+  localHTP = g_humanBuildPoints.integer;
+  localATP = g_alienBuildPoints.integer;
 
   level.humanBuildPoints = level.humanBuildPointsPowered = localHTP;
   level.alienBuildPoints = localATP;
@@ -1313,7 +1211,7 @@ void G_CalculateBuildPoints( void )
       if( buildable == BA_A_OVERMIND && ent->spawned && ent->health > 0 )
         level.overmindPresent = qtrue;
 
-      if( !g_suddenDeath.integer || BG_FindReplaceableTestForBuildable( buildable ) )
+      if( BG_FindReplaceableTestForBuildable( buildable ) )
       {
         if( BG_FindTeamForBuildable( buildable ) == BIT_HUMANS )
         {
@@ -1964,7 +1862,7 @@ void G_SendGameStat( pTeam_t team )
       level.averageNumHumanClients,
       map,
       level.time - level.startTime,
-      G_TimeTilSuddenDeath( ),
+      999999999,
       g_alienStage.integer,
       level.alienStage2Time - level.startTime,
       level.alienStage3Time - level.startTime,
@@ -2322,17 +2220,6 @@ void CheckVote( void )
       G_admin_maplog_result( "m" );
     }
 
-
-    if( !Q_stricmp( level.voteString, "suddendeath" ) )
-    {
-      level.suddenDeathBeginTime = level.time + ( 1000 * g_suddenDeathVoteDelay.integer ) - level.startTime;
-
-      level.voteString[0] = '\0';
-
-      if( g_suddenDeathVoteDelay.integer )
-        trap_SendServerCommand( -1, va("cp \"Sudden Death will begin in %d seconds\n\"", g_suddenDeathVoteDelay.integer  ) );
-    }
-
     if( level.voteString[0] )
       trap_SendConsoleCommand( EXEC_APPEND, va( "%s\n", level.voteString ) );
 
@@ -2528,7 +2415,6 @@ void CheckCvars( void )
 {
   static int lastPasswordModCount   = -1;
   static int lastMarkDeconModCount  = -1;
-  static int lastSDTimeModCount = -1;
 
   if( g_password.modificationCount != lastPasswordModCount )
   {
@@ -2559,12 +2445,6 @@ void CheckCvars( void )
 
       ent->deconstruct = qfalse;
     }
-  }
-
-  if( g_suddenDeathTime.modificationCount != lastSDTimeModCount )
-  {
-    lastSDTimeModCount = g_suddenDeathTime.modificationCount;
-    level.suddenDeathBeginTime = g_suddenDeathTime.integer * 60000;
   }
 
   level.frameMsec = trap_Milliseconds( );
