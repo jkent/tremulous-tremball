@@ -685,6 +685,16 @@ void Cmd_Team_f( gentity_t *ent )
   else if( oldteam == PTE_HUMANS )
     humans--;
 
+  // do warm up
+  if( g_doWarmup.integer && g_warmupMode.integer == 1 &&
+      level.time - level.startTime < g_warmup.integer * 1000 )
+  {
+    trap_SendServerCommand( ent - g_entities, va( "print \"team: you can't join"
+      " a team during warm up (%d seconds remaining)\n\"",
+      g_warmup.integer - ( level.time - level.startTime ) / 1000 ) );
+    return;
+  }
+
   trap_Argv( 1, s, sizeof( s ) );
 
   if( !strlen( s ) )

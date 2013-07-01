@@ -72,6 +72,9 @@ vmCvar_t  g_weaponRespawn;
 vmCvar_t  g_weaponTeamRespawn;
 vmCvar_t  g_motd;
 vmCvar_t  g_synchronousClients;
+vmCvar_t  g_warmup;
+vmCvar_t  g_warmupMode;
+vmCvar_t  g_doWarmup;
 vmCvar_t  g_restarted;
 vmCvar_t  g_lockTeamsAtStart;
 vmCvar_t  g_logFile;
@@ -223,6 +226,9 @@ static cvarTable_t   gameCvarTable[ ] =
   { &g_devmapNoGod, "g_devmapNoGod", "0", CVAR_ARCHIVE, 0, qtrue  },
   { &g_devmapNoStructDmg, "g_devmapNoStructDmg", "0", CVAR_ARCHIVE, 0, qtrue  },
 
+  { &g_warmup, "g_warmup", "10", CVAR_ARCHIVE, 0, qtrue  },
+  { &g_warmupMode, "g_warmupMode", "1", CVAR_ARCHIVE, 0, qtrue  },
+  { &g_doWarmup, "g_doWarmup", "1", CVAR_ARCHIVE, 0, qtrue  },
   { &g_teamAutoJoin, "g_teamAutoJoin", "0", CVAR_ARCHIVE  },
   { &g_teamForceBalance, "g_teamForceBalance", "1", CVAR_ARCHIVE  },
 
@@ -1100,6 +1106,12 @@ void G_SpawnClients( pTeam_t team )
   vec3_t        spawn_origin, spawn_angles;
   spawnQueue_t  *sq = NULL;
   int           numSpawns = 0;
+
+  if( g_doWarmup.integer && ( g_warmupMode.integer==1 || g_warmupMode.integer == 2 ) &&
+      level.time - level.startTime < g_warmup.integer * 1000 )
+  {
+    return;
+  }
 
   if( team == PTE_ALIENS )
   {
@@ -2483,6 +2495,32 @@ void CheckMsgTimer( void )
 
 /*
 ==================
+CheckCountdown
+==================
+*/
+void CheckCountdown( void )
+{
+  static int lastmsg = 0;
+  int timeleft = g_warmup.integer - ( level.time - level.startTime ) / 1000;
+
+  if( !g_doWarmup.integer || timeleft < 0 )
+    return;
+
+  if( level.time - lastmsg < 1000 )
+    return;
+
+  lastmsg = level.time;
+  if( timeleft > 0 )
+    trap_SendServerCommand( -1, va( "cp \"^1Warmup Time:^7\n^%i----- ^7%i ^%i-----\"", timeleft % 7, timeleft, timeleft % 7 ) );
+  else if( timeleft == 0 ) {
+    trap_SendServerCommand( -1, "cp \"^2----- GO! -----^7\"" );
+    trap_SendConsoleCommand( EXEC_APPEND, "!puck\n" );
+  }
+}
+
+
+/*
+==================
 CheckCvars
 ==================
 */
@@ -2612,6 +2650,7 @@ void G_RunFrame( int levelTime )
   }
 
   CheckMsgTimer( );
+  CheckCountdown( );
   
   level.framenum++;
   level.previousTime = level.time;
