@@ -3187,15 +3187,15 @@ static void UI_LoadTremTeams( void )
 {
   uiInfo.tremTeamCount = 4;
 
-  uiInfo.tremTeamList[ 0 ].text = String_Alloc( "Aliens" );
+  uiInfo.tremTeamList[ 0 ].text = String_Alloc( "^1=^7 Red Team ^1=^7" );
   uiInfo.tremTeamList[ 0 ].cmd = String_Alloc( "cmd team aliens\n" );
   uiInfo.tremTeamList[ 0 ].infopane = UI_FindInfoPaneByName( "alienteam" );
 
-  uiInfo.tremTeamList[ 1 ].text = String_Alloc( "Humans" );
+  uiInfo.tremTeamList[ 1 ].text = String_Alloc( "^4=^7 Blue Team ^4=^7" );
   uiInfo.tremTeamList[ 1 ].cmd = String_Alloc( "cmd team humans\n" );
   uiInfo.tremTeamList[ 1 ].infopane = UI_FindInfoPaneByName( "humanteam" );
 
-  uiInfo.tremTeamList[ 2 ].text = String_Alloc( "Spectate" );
+  uiInfo.tremTeamList[ 2 ].text = String_Alloc( "^2=^7 Crowd Member ^2=^7" );
   uiInfo.tremTeamList[ 2 ].cmd = String_Alloc( "cmd team spectate\n" );
   uiInfo.tremTeamList[ 2 ].infopane = UI_FindInfoPaneByName( "spectateteam" );
 
