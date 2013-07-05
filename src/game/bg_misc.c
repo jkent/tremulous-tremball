@@ -1859,7 +1859,7 @@ classAttributes_t bg_classList[ ] =
     LEVEL3_REGEN,                                   //int     regenRate;
     SCA_NOWEAPONDRIFT|
       SCA_FOVWARPS|SCA_ALIENSENSE,                  //int     abilities;
-    WP_ALEVEL3,                                     //weapon_t  startWeapon
+    WP_ALEVEL3_UPG,                                 //weapon_t  startWeapon
     0.0f,                                           //float   buildDist;
     110,                                            //int     fov;
     0.0005f,                                        //float   bob;

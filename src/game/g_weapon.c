@@ -854,6 +854,15 @@ void slowBlobFire( gentity_t *ent )
 //  VectorAdd( m->s.pos.trDelta, ent->client->ps.velocity, m->s.pos.trDelta );  // "real" physics
 }
 
+void tractionBlobFire( gentity_t *ent )
+{
+  gentity_t *m;
+
+  m = fire_tractionBlob( ent, muzzle, forward );
+
+//  VectorAdd( m->s.pos.trDelta, ent->client->ps.velocity, m->s.pos.trDelta );  // "real" physics
+}
+
 
 /*
 ======================================================================
@@ -1494,8 +1503,9 @@ void FireWeapon3( gentity_t *ent )
   // fire the specific weapon
   switch( ent->s.weapon )
   {
+    case WP_ALEVEL3:
     case WP_ALEVEL3_UPG:
-      bounceBallFire( ent );
+      tractionBlobFire( ent );
       break;
 
     case WP_ABUILD2:

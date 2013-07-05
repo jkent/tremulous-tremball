@@ -23,6 +23,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "g_local.h"
 
+
+static void G_TractionBlobThink( gentity_t *ent );
+
+
 #define MISSILE_PRESTEP_TIME  50
 
 /*
@@ -127,7 +131,37 @@ void G_MissileImpact( gentity_t *ent, trace_t *trace )
     return;
   }
 
-  if( !strcmp( ent->classname, "grenade" ) )
+  if( !strcmp( ent->classname, "tractionblob" ) )
+  {
+    if( other->takedamage && other->client )
+    {
+      other->client->ps.stats[ STAT_STATE ] |= SS_SLOWLOCKED;
+      other->client->lastSlowTime = level.time;
+
+      /*AngleVectors( other->client->ps.viewangles, dir, NULL, NULL );
+      other->client->ps.stats[ STAT_VIEWLOCK ] = DirToByte( dir );*/
+
+      G_AddEvent( ent, EV_MISSILE_HIT, DirToByte( trace->plane.normal ) );
+      ent->s.otherEntityNum = other->s.number;
+      ent->freeAfterEvent = qtrue;
+    }
+    else {
+      /* impacted world, persist with think() for a while */
+
+      G_AddEvent( ent, EV_MISSILE_MISS, DirToByte( trace->plane.normal ) );
+
+      ent->timestamp = level.time;
+      ent->nextthink = level.time + 100;
+      ent->think = G_TractionBlobThink;
+    }
+
+    ent->s.eType = ET_GENERAL;
+    SnapVectorTowards( trace->endpos, ent->s.pos.trBase );  // save net bandwidth
+    G_SetOrigin( ent, trace->endpos );
+    trap_LinkEntity( ent );
+    return;
+  }
+  else if( !strcmp( ent->classname, "grenade" ) )
   {
     //grenade doesn't explode on impact
     G_BounceMissile( ent, trace );
@@ -809,6 +843,90 @@ gentity_t *fire_bounceBall( gentity_t *self, vec3_t start, vec3_t dir )
 }
 
 /* Tremball */
+
+/*
+=================
+fire_tractionBlob
+=================
+*/
+gentity_t *fire_tractionBlob( gentity_t *self, vec3_t start, vec3_t dir )
+{
+  gentity_t *bolt;
+
+  VectorNormalize ( dir );
+
+  bolt = G_Spawn( );
+  bolt->classname = "tractionblob";
+  bolt->nextthink = level.time + 15000;
+  bolt->think = G_ExplodeMissile;
+  bolt->s.eType = ET_MISSILE;
+  bolt->r.svFlags = SVF_USE_CURRENT_ORIGIN;
+  bolt->s.weapon = WP_ABUILD2;
+  bolt->s.generic1 = self->s.generic1; //weaponMode
+  bolt->r.ownerNum = self->s.number;
+  bolt->parent = self;
+  bolt->damage = 0;
+  bolt->splashDamage = 0;
+  bolt->splashRadius = 0;
+  bolt->methodOfDeath = MOD_SLOWBLOB;
+  bolt->splashMethodOfDeath = MOD_SLOWBLOB;
+  bolt->clipmask = MASK_SHOT;
+  bolt->target_ent = NULL;
+
+  bolt->s.pos.trType = TR_GRAVITY;
+  bolt->s.pos.trTime = level.time - MISSILE_PRESTEP_TIME;   // move a bit on the very first frame
+  VectorCopy( start, bolt->s.pos.trBase );
+  VectorScale( dir, ABUILDER_BLOB_SPEED, bolt->s.pos.trDelta );
+  SnapVector( bolt->s.pos.trDelta );      // save net bandwidth
+  VectorCopy( start, bolt->r.currentOrigin );
+
+  return bolt;
+}
+
+static void G_AddTraction( gentity_t *self )
+{
+  int         entityList[ MAX_GENTITIES ];
+  vec3_t      range;
+  vec3_t      mins, maxs;
+  int         i, num;
+  gentity_t   *other;
+  float       creepSize = 48;
+
+  VectorSet( range, creepSize, creepSize, creepSize );
+
+  VectorAdd( self->s.origin, range, maxs );
+  VectorSubtract( self->s.origin, range, mins );
+
+  num = trap_EntitiesInBox( mins, maxs, entityList, MAX_GENTITIES );
+  for( i = 0; i < num; i++ )
+  {
+    other = &g_entities[ entityList[ i ] ];
+
+    if( other->flags & FL_NOTARGET )
+      continue;
+
+    if( other->takedamage && other->client &&
+        other->client->ps.groundEntityNum != ENTITYNUM_NONE &&
+        G_Visible( self, other ) )
+    {
+      trap_SendServerCommand( -1, "print \"gotcha\n\"" );
+      other->client->ps.stats[ STAT_STATE ] |= SS_CREEPSLOWED;
+      other->client->lastCreepSlowTime = level.time;
+    }
+  }
+}
+
+
+static void G_TractionBlobThink( gentity_t *self )
+{
+
+  G_AddTraction( self );
+
+  if( ( self->timestamp + 10000 ) > level.time )
+    self->nextthink = level.time + 100;
+  else
+    G_FreeEntity( self );
+}
 
 gentity_t *launch_explosion( gentity_t *self, vec3_t start, vec3_t dir )
 {
