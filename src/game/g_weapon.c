@@ -1651,14 +1651,15 @@ void FireWeapon( gentity_t *ent )
   }
 }
 
-// ROTAX
+/* Tremball */
+
 void Blow_up( gentity_t *ent )
 {
   gentity_t *m;
 
-    // set directions
-    AngleVectors( ent->client->ps.viewangles, forward, right, up );
-    CalcMuzzlePoint( ent, forward, right, up, muzzle );
+  // set directions
+  AngleVectors( ent->client->ps.viewangles, forward, right, up );
+  CalcMuzzlePoint( ent, forward, right, up, muzzle );
     
-  m = launch_grenade2( ent, muzzle, forward );
+  m = launch_explosion( ent, muzzle, forward );
 }

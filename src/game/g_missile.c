@@ -808,8 +808,9 @@ gentity_t *fire_bounceBall( gentity_t *self, vec3_t start, vec3_t dir )
   return bolt;
 }
 
-// ROTAX
-gentity_t *launch_grenade2( gentity_t *self, vec3_t start, vec3_t dir )
+/* Tremball */
+
+gentity_t *launch_explosion( gentity_t *self, vec3_t start, vec3_t dir )
 {
   gentity_t *bolt;
 

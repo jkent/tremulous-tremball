@@ -1003,7 +1003,8 @@ gentity_t *fire_bounceBall( gentity_t *self, vec3_t start, vec3_t dir );
 gentity_t *fire_hive( gentity_t *self, vec3_t start, vec3_t dir );
 gentity_t *launch_grenade( gentity_t *self, vec3_t start, vec3_t dir );
 
-gentity_t *launch_grenade2( gentity_t *self, vec3_t start, vec3_t dir ); // ROTAX
+gentity_t *fire_frictionBlob( gentity_t *self, vec3_t start, vec3_t dir );
+gentity_t *launch_explosion( gentity_t *self, vec3_t start, vec3_t dir );
 
 //
 // g_mover.c
