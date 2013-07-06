@@ -1,0 +1,49 @@
+#!/bin/bash
+
+GAME=tremball
+SERVER=photon
+
+PLATFORM=$(uname|sed -e s/_.*//|tr '[:upper:]' '[:lower:]')
+ARCH=$(uname -m)
+
+function show_usage() {
+  echo "deploy [debug|release] [test|production]"
+  exit 1
+}
+
+case $1 in
+  debug)
+    B=build/debug-${PLATFORM}-${ARCH}
+    ;;
+  release)
+    B=build/release-${PLATFORM}-${ARCH}
+    ;;
+  *)
+    show_usage
+    ;;
+esac
+
+case $2 in
+  test)
+    GAME=${GAME}-test
+    ;;
+  production)
+    ;;
+  *)
+    show_usage
+    ;;
+esac
+
+if ! make -j5 $1; then
+  exit 1
+fi
+
+if ssh ${SERVER} tremded/tremded ${GAME} running; then
+  ssh ${SERVER} tremded/tremded ${GAME} stop ||
+    exit 1
+fi
+
+scp ${B}/base/gamex86_64.so ${B}/base/*.pk3 ${SERVER}:tremded/${GAME} &&
+ssh ${SERVER} tremded/tremded ${GAME} start ||
+  exit 1
+
