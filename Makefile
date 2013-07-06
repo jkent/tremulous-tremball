@@ -23,6 +23,7 @@ endif
 
 BUILD_GAME_SO    = 1
 BUILD_GAME_QVM   = 1
+BUILD_GAME_PK3   = 1
 
 #############################################################################
 #
@@ -366,6 +367,14 @@ ifneq ($(BUILD_GAME_QVM),0)
   endif
 endif
 
+ifneq ($(BUILD_PK3),0)
+  TARGETS += \
+    $(B)/base/player.pk3 \
+    $(B)/base/puck.pk3 \
+    $(B)/base/sound.pk3 \
+    $(B)/base/vm.pk3
+endif
+
 ifeq ($(USE_CCACHE),1)
   CC := ccache $(CC)
 endif
@@ -617,6 +626,43 @@ $(B)/base/qcommon/%.o: $(CMDIR)/%.c
 
 $(B)/base/qcommon/%.asm: $(CMDIR)/%.c
 	$(DO_Q3LCC)
+
+
+#############################################################################
+# PK3 Rules
+#############################################################################
+
+MODEL_PATTERNS=*.tga *.jpg *.md3 *.skin *.shader *.cfg
+MODEL_FINDARGS = -name "$(firstword $(MODEL_PATTERNS))" \
+  $(foreach pat,$(wordlist 2,999,$(MODEL_PATTERNS)), \
+    $(shell echo -o -name \"$(pat)\"))
+
+PLAYER_PK3_FILES = $(shell find media $(MODEL_FINDARGS) | grep level3)
+PUCK_PK3_FILES = $(shell find media $(MODEL_FINDARGS) | grep level0)
+SOUND_PK3_FILES = $(shell find media -name "*.wav")
+VM_PK3_FILES = $(B)/base/vm/cgame.qvm $(B)/base/vm/ui.qvm \
+               $(B)/base/ui/infopanes.def ui/teamscore.menu
+
+$(B)/base/ui/infopanes.def: ui/infopanes.def.h
+	@mkdir -p $(dir $@)
+	@$(CC) -E $< | grep "^[^#].*" > $@
+
+$(B)/base/%.pk3:
+	@echo ZIP $@
+	@rm -f $@
+	@for f in $^; do \
+	  if [[ $$f != $(B)/base/* ]]; then \
+	    mkdir -p $$B/base/$$(dirname $${f#media/}); \
+	    cp -p $$f $$B/base/$${f#media/}; \
+          fi \
+        done
+	@cd $(B)/base; \
+          zip -qX9 $(subst $B/base/,,$@) $(subst $B/base/,,$(subst media/,,$^))
+
+$(B)/base/player.pk3: $(PLAYER_PK3_FILES)
+$(B)/base/puck.pk3: $(PUCK_PK3_FILES)
+$(B)/base/sound.pk3: $(SOUND_PK3_FILES)
+$(B)/base/vm.pk3: $(VM_PK3_FILES)
 
 
 #############################################################################
