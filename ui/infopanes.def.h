@@ -1,4 +1,4 @@
-#include "/home/tma/tremulous/src/game/tremulous.h"
+#include "../src/game/tremulous.h"
 
 #define CREDITS(X) text "Credits: " text X
 #define HUMAN_BCOST(X) text "Power: " text X
