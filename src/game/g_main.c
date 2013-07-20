@@ -1419,6 +1419,7 @@ void CalculateRanks( void )
   level.numVotingClients = 0;   // don't count bots
   level.numAlienClients = 0;
   level.numHumanClients = 0;
+  level.numBotClients = 0;
   level.numLiveAlienClients = 0;
   level.numLiveHumanClients = 0;
 
@@ -1440,6 +1441,9 @@ void CalculateRanks( void )
         level.numPlayingClients++;
         if( level.clients[ i ].sess.sessionTeam != TEAM_SPECTATOR )
           level.numNonSpectatorClients++;
+
+        if( level.gentities[ i ].isBot )
+          level.numBotClients++;
 
         if( level.clients[ i ].pers.teamSelection == PTE_ALIENS )
         {
@@ -2045,7 +2049,7 @@ void CheckIntermissionExit( void )
   }
 
   // if everyone wants to go, go now
-  if( !notReady )
+  if( !( notReady - level.numBotClients ) )
   {
     ExitLevel( );
     return;

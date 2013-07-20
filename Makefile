@@ -367,7 +367,7 @@ ifneq ($(BUILD_GAME_QVM),0)
   endif
 endif
 
-ifneq ($(BUILD_PK3),0)
+ifneq ($(BUILD_GAME_PK3),0)
   TARGETS += \
     $(B)/base/player.pk3 \
     $(B)/base/puck.pk3 \

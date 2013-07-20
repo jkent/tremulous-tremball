@@ -208,6 +208,7 @@ struct gentity_s
   int               botEnemyLastSeen;
   int               botSkillLevel;
   int               botTeam;
+  qboolean          isBot;
 
   // timing variables
   float             wait;
@@ -725,6 +726,7 @@ typedef struct
 
   int               numAlienClients;
   int               numHumanClients;
+  int               numBotClients;
 
   float             averageNumAlienClients;
   int               numAlienSamples;
