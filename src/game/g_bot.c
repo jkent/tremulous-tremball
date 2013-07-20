@@ -67,6 +67,7 @@ void G_BotAdd( char *name, int team, int skill ) {
   bot->botEnemyLastSeen = 0;
   bot->botSkillLevel = skill;
   bot->botTeam = team;
+  bot->isBot = qtrue;
 
   // register user information
   userinfo[0] = '\0';
